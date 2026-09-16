@@ -38,6 +38,13 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
+    // Safety fallback: ensure UI renders even if network handshake is delayed
+    const safetyTimer = setTimeout(() => {
+      if (mounted) {
+        setAuthLoading(false);
+      }
+    }, 3000);
+
     async function initSession() {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -53,6 +60,7 @@ export default function App() {
         }
       } finally {
         if (mounted) {
+          clearTimeout(safetyTimer);
           setAuthLoading(false);
         }
       }
@@ -71,6 +79,7 @@ export default function App() {
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimer);
       subscription?.unsubscribe();
     };
   }, []);
