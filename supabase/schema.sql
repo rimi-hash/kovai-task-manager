@@ -47,6 +47,13 @@ CREATE POLICY "Users can update their own tasks"
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+-- Policy 4: Authenticated users can only delete their own tasks
+CREATE POLICY "Users can delete their own tasks"
+    ON public.tasks
+    FOR DELETE
+    TO authenticated
+    USING (auth.uid() = user_id);
+
 -- 5. Trigger to automatically update updated_at timestamp on record modification
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
@@ -63,4 +70,5 @@ CREATE TRIGGER set_tasks_updated_at
     EXECUTE FUNCTION public.handle_updated_at();
 
 -- 6. Grant appropriate permissions to authenticated role
-GRANT SELECT, INSERT, UPDATE ON public.tasks TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tasks TO authenticated;
+
